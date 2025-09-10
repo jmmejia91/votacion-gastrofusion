@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batalla de Tartara y Piña</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 10px;
+        }
+        .logos-container {
+            margin-bottom: 20px;
+        }
+        .logos-container img {
+            max-width: 100%;
+            height: auto;
+        }
+        .sponsors-container {
+            margin-top: 20px;
+        }
+        .sponsors-container img {
+            max-width: 100%;
+            height: auto;
+        }
+        form {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: left;
+            border: 1px solid #333;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        label, input, select, button {
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+        }
+        input, select {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #333;
+            color: #fff;
+        }
+        button {
+            background-color: #f0a500;
+            color: #fff;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #e39a00;
+        }
+        #message {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logos-container">
+        <img src="https://res.cloudinary.com/drbilmgep/image/upload/v1757518619/logos_feqfwl.png" alt="Logos del Evento GastroFusion">
+    </div>
+
+    <h1>Votación: Batalla de Tartara y Piña</h1>
+
+    <form id="votingForm">
+        <label for="nombre">Tu Nombre:</label>
+        <input type="text" id="nombre" name="nombre" required>
+
+        <label for="identificador">Tu Correo:</label>
+        <input type="text" id="identificador" name="identificador" required>
+
+        <label for="salsa">Tu Tartara favorita:</label>
+        <select id="salsa" name="salsa" required>
+            <option value="">Selecciona una opción</option>
+            <script>
+                for (let i = 1; i <= 10; i++) {
+                    document.write(`<option value="${i}">Salsa #${i}</option>`);
+                }
+            </script>
+        </select>
+
+        <label for="pina">Tu piña favorita:</label>
+        <select id="pina" name="pina" required>
+            <option value="">Selecciona una opción</option>
+            <script>
+                for (let i = 1; i <= 10; i++) {
+                    document.write(`<option value="${i}">Piña #${i}</option>`);
+                }
+            </script>
+        </select>
+
+        <button type="submit">Votar</button>
+    </form>
+
+    <p id="message"></p>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    
+    <script src="firebase-config.js"></script>
+
+    <script>
+        // Lógica de votación y validación
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+    
+        const votingForm = document.getElementById('votingForm');
+        const messageDisplay = document.getElementById('message');
+
+        votingForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const nombre = document.getElementById('nombre').value;
+            const identificador = document.getElementById('identificador').value;
+            const salsa = document.getElementById('salsa').value;
+            const pina = document.getElementById('pina').value;
+
+            const sanitizedIdentificador = identificador.replace(/[.#$/[\]]/g, "_");
+            const userVoteRef = database.ref('votos/' + sanitizedIdentificador);
+
+            userVoteRef.once('value').then(function(snapshot) {
+                if (snapshot.exists()) {
+                    messageDisplay.textContent = '❌ ¡Ya registramos tu voto! Gracias por participar.';
+                    messageDisplay.style.color = '#ff4d4d';
+                } else {
+                    userVoteRef.set({
+                        nombre: nombre,
+                        identificador: identificador,
+                        salsaElegida: salsa,
+                        pinaElegida: pina,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    }).then(() => {
+                        messageDisplay.textContent = '✅ ¡Tu voto fue registrado con éxito! 🎉';
+                        messageDisplay.style.color = '#4dff4d';
+                        votingForm.reset();
+                    }).catch((error) => {
+                        messageDisplay.textContent = 'Hubo un error al registrar tu voto: ' + error.message;
+                        messageDisplay.style.color = '#ff4d4d';
+                    });
+                }
+            });
+        });
+    </script>
+
+    <div class="sponsors-container">
+        <img src="https://res.cloudinary.com/drbilmgep/image/upload/v1757518647/Patrocinadores_mq07ap.png" alt="Logos de los Patrocinadores">
+    </div>
+
+</body>
+</html>
