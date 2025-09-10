@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados en Vivo - GastroFusion</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #f0a500;
+        }
+        .container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        .results-section {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px;
+            width: 45%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+        h2 {
+            margin-top: 0;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background-color: #333;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2em;
+        }
+        .vote-count {
+            background-color: #f0a500;
+            color: #000;
+            padding: 5px 10px;
+            border-radius: 50%;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Resultados en Vivo</h1>
+    <h2>Concurso de Tartara y Piña</h2>
+    
+    <div class="container">
+        <div class="results-section">
+            <h2>Mejor Tartara</h2>
+            <ul id="salsa-results">
+                </ul>
+        </div>
+        <div class="results-section">
+            <h2>Mejor Piña</h2>
+            <ul id="pina-results">
+                </ul>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+
+    <script>
+        // Pega aquí el mismo objeto de configuración de Firebase de tu index.html
+        const firebaseConfig = {
+            apiKey: "AIzaSyB81egHqwx7Pv__N13oHdGuuz0dSZys4uw",
+            authDomain: "gastrofusion-votos-f7b4c.firebaseapp.com",
+            databaseURL: "https://gastrofusion-votos-f7b4c-default-rtdb.firebaseio.com",
+            projectId: "gastrofusion-votos-f7b4c",
+            storageBucket: "gastrofusion-votos-f7b4c.firebasestorage.app",
+            messagingSenderId: "827038929252",
+            appId: "1:827038929252:web:2681fdffa14ad8282eea71",
+            measurementId: "G-G62CMEER1X"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Lógica para actualizar los resultados en tiempo real
+        const votosRef = database.ref('votos');
+
+        votosRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            const salsaCounts = {};
+            const pinaCounts = {};
+
+            if (data) {
+                // Contar los votos para cada salsa y piña
+                for (const votoKey in data) {
+                    const voto = data[votoKey];
+                    const salsa = voto.salsaElegida;
+                    const pina = voto.pinaElegida;
+
+                    salsaCounts[salsa] = (salsaCounts[salsa] || 0) + 1;
+                    pinaCounts[pina] = (pinaCounts[pina] || 0) + 1;
+                }
+            }
+            
+            // Convertir a arrays y ordenar de mayor a menor
+            const sortedSalsas = Object.entries(salsaCounts).sort(([, a], [, b]) => b - a);
+            const sortedPinas = Object.entries(pinaCounts).sort(([, a], [, b]) => b - a);
+            
+            // Mostrar los resultados en la página
+            const salsaList = document.getElementById('salsa-results');
+            salsaList.innerHTML = ''; // Limpia la lista antes de actualizar
+            sortedSalsas.forEach(([salsa, count]) => {
+                const li = document.createElement('li');
+                li.innerHTML = `Salsa #${salsa} <span class="vote-count">${count}</span>`;
+                salsaList.appendChild(li);
+            });
+
+            const pinaList = document.getElementById('pina-results');
+            pinaList.innerHTML = ''; // Limpia la lista antes de actualizar
+            sortedPinas.forEach(([pina, count]) => {
+                const li = document.createElement('li');
+                li.innerHTML = `Piña #${pina} <span class="vote-count">${count}</span>`;
+                pinaList.appendChild(li);
+            });
+        });
+    </script>
+</body>
+</html>
